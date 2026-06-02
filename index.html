@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Operacional Logístico</title>
+    <!-- Bibliotecas em CDN -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -23,155 +24,40 @@
             --border: #2d3748;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding: 20px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; }
 
         /* Header e Controles */
-        .header {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 24px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
+        .header { display: flex; flex-direction: column; gap: 15px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
         .header h1 { font-size: 1.5rem; color: var(--text-main); }
 
-        .controls {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-            background-color: rgba(255, 255, 255, 0.02);
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px dashed var(--border);
-        }
-
+        .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background-color: rgba(255, 255, 255, 0.02); padding: 12px; border-radius: 8px; border: 1px dashed var(--border); }
         input[type="file"] { display: none; }
 
-        .btn-upload {
-            background-color: var(--primary);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.3s;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .btn-upload { background-color: var(--primary); color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.3s; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
         .btn-upload:hover { background-color: #2563eb; }
 
-        /* Botões de Ação (Copiar, Wpp) */
-        .btn-action {
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: bold;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid;
-        }
-
-        .btn-export {
-            background-color: rgba(59, 130, 246, 0.2);
-            color: var(--primary);
-            border-color: var(--primary);
-        }
+        /* Botões de Ação */
+        .btn-action { padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: all 0.2s; display: flex; align-items: center; gap: 6px; border: 1px solid; }
+        .btn-export { background-color: rgba(59, 130, 246, 0.2); color: var(--primary); border-color: var(--primary); }
         .btn-export:hover { background-color: var(--primary); color: white; }
         .btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .btn-wpp {
-            background-color: rgba(37, 211, 102, 0.2);
-            color: var(--wpp);
-            border-color: var(--wpp);
-        }
+        .btn-wpp { background-color: rgba(37, 211, 102, 0.2); color: var(--wpp); border-color: var(--wpp); }
         .btn-wpp:hover { background-color: var(--wpp); color: white; }
 
-        select {
-            background-color: var(--card-bg);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 8px 12px;
-            border-radius: 6px;
-            outline: none;
-            font-size: 0.9rem;
-        }
+        select { background-color: var(--card-bg); color: var(--text-main); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; outline: none; font-size: 0.9rem; }
 
-        /* Checkboxes de Status */
-        .status-filters {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            padding-left: 10px;
-            border-left: 1px solid var(--border);
-        }
-
-        .status-label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            user-select: none;
-        }
-
-        .status-label input[type="checkbox"] {
-            cursor: pointer;
-            width: 16px;
-            height: 16px;
-            accent-color: var(--primary);
-        }
+        /* Checkboxes */
+        .status-filters { display: flex; gap: 12px; align-items: center; padding-left: 10px; border-left: 1px solid var(--border); }
+        .status-label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.85rem; user-select: none; }
+        .status-label input[type="checkbox"] { cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary); }
 
         /* KPIs */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 15px;
-            margin-bottom: 24px;
-        }
-
-        .kpi-card {
-            background-color: var(--card-bg);
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .kpi-title {
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 24px; }
+        .kpi-card { background-color: var(--card-bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 5px; }
+        .kpi-title { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
         .kpi-value { font-size: 1.6rem; font-weight: bold; }
 
         .text-success { color: var(--success); }
@@ -179,80 +65,34 @@
         .text-warning { color: var(--warning); }
         .text-primary { color: var(--primary); }
 
-        /* Gráficos e Tabelas - Layout Grid */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin-bottom: 24px;
-        }
+        /* Layout Grid */
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
+        @media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
-        @media (max-width: 1024px) {
-            .dashboard-grid { grid-template-columns: 1fr; }
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
+        .card { background-color: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column;}
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
         .card-header h2 { font-size: 1.1rem; color: var(--text-main); }
 
         /* Heatmap */
-        .heatmap-container {
-            overflow-x: auto;
-            max-height: 400px;
-            padding: 5px; 
-        }
-
-        .heatmap-table {
-            border-collapse: collapse;
-            width: 100%;
-            text-align: center;
-        }
-
-        .heatmap-table th, .heatmap-table td {
-            padding: 8px 6px;
-            border: 1px solid var(--border);
-            min-width: 40px;
-            font-size: 0.8rem;
-            white-space: nowrap;
-        }
-
+        .heatmap-container { overflow-x: auto; max-height: 350px; padding: 5px; }
+        .heatmap-table { border-collapse: collapse; width: 100%; text-align: center; }
+        .heatmap-table th, .heatmap-table td { padding: 8px 6px; border: 1px solid var(--border); min-width: 40px; font-size: 0.8rem; white-space: nowrap; }
         .heatmap-table th { background-color: var(--bg-color); position: sticky; top: 0; z-index: 10; }
         .heatmap-table th:first-child { left: 0; z-index: 11; min-width: 150px; text-align: left; padding-left: 10px; }
         .heatmap-table td:first-child { position: sticky; left: 0; background-color: var(--card-bg); text-align: left; padding-left: 10px; font-weight: bold; z-index: 9; }
-
         .heat-cell { color: #000; font-weight: bold; }
 
         /* Tabelas Genéricas */
-        .table-container {
-            overflow-x: auto;
-            max-height: 350px;
-            overflow-y: auto;
-            padding: 5px;
-        }
-
+        .table-container { overflow-x: auto; max-height: 350px; overflow-y: auto; padding: 5px; }
+        .table-small { max-height: 250px; } /* Para o Top 15 */
+        
         table.data-table { width: 100%; border-collapse: collapse; }
         table.data-table th, table.data-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; vertical-align: middle; }
         table.data-table th { background-color: var(--bg-color); position: sticky; top: 0; color: var(--text-muted); cursor: pointer; white-space: nowrap; z-index: 10; }
         table.data-table th:hover { color: var(--primary); }
 
-        .chart-container { position: relative; height: 300px; width: 100%; }
+        .chart-container { position: relative; height: 250px; width: 100%; }
+        .chart-small { height: 200px; }
 
         /* Badges de Status */
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
@@ -262,30 +102,13 @@
         .bg-info { background-color: rgba(14, 165, 233, 0.2); color: #0ea5e9; border: 1px solid #0ea5e9; }
 
         /* MODAL WHATSAPP */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: none; justify-content: center; align-items: center; z-index: 9999;
-        }
-        .modal-content {
-            background-color: var(--card-bg);
-            padding: 24px; border-radius: 12px; border: 1px solid var(--border);
-            width: 90%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-        .modal-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .modal-content { background-color: var(--card-bg); padding: 24px; border-radius: 12px; border: 1px solid var(--border); width: 90%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
         .modal-header h3 { color: var(--wpp); margin: 0; }
-        .close-modal {
-            background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;
-        }
+        .close-modal { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
         .close-modal:hover { color: var(--danger); }
-        .modal-textarea {
-            width: 100%; height: 250px; background-color: var(--bg-color); color: var(--text-main);
-            border: 1px solid var(--border); border-radius: 6px; padding: 12px;
-            font-family: monospace; font-size: 0.85rem; resize: none; margin-top: 10px; margin-bottom: 15px;
-        }
+        .modal-textarea { width: 100%; height: 250px; background-color: var(--bg-color); color: var(--text-main); border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-family: monospace; font-size: 0.85rem; resize: none; margin-top: 10px; margin-bottom: 15px; }
         .modal-footer { display: flex; justify-content: flex-end; gap: 10px; }
     </style>
 </head>
@@ -302,15 +125,8 @@
         
         <div class="controls">
             <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: bold;">FILTROS:</span>
-            
-            <select id="filterLoadDate" onchange="applyGlobalFilters()">
-                <option value="ALL">Lote: Todos</option>
-            </select>
-            
-            <select id="filterCity" onchange="applyGlobalFilters()">
-                <option value="ALL">Cidades: Todas</option>
-            </select>
-
+            <select id="filterLoadDate" onchange="applyGlobalFilters()"><option value="ALL">Lote: Todos</option></select>
+            <select id="filterCity" onchange="applyGlobalFilters()"><option value="ALL">Cidades: Todas</option></select>
             <select id="filterStatus" onchange="applyGlobalFilters()">
                 <option value="ALL">Pacote: Todos</option>
                 <option value="DELIVERED">Apenas Entregues</option>
@@ -319,98 +135,58 @@
             </select>
 
             <div class="status-filters">
-                <label class="status-label">
-                    <input type="checkbox" class="status-cb" value="Em Rota" checked onchange="applyGlobalFilters()">
-                    <span class="badge bg-success">Em Rota</span>
-                </label>
-                <label class="status-label">
-                    <input type="checkbox" class="status-cb" value="Lento" checked onchange="applyGlobalFilters()">
-                    <span class="badge bg-warning">Lentos</span>
-                </label>
-                <label class="status-label">
-                    <input type="checkbox" class="status-cb" value="Parado" checked onchange="applyGlobalFilters()">
-                    <span class="badge bg-danger">Parados</span>
-                </label>
-                <label class="status-label">
-                    <input type="checkbox" class="status-cb" value="Concluído" checked onchange="applyGlobalFilters()">
-                    <span class="badge bg-info">Concluídos</span>
-                </label>
+                <label class="status-label"><input type="checkbox" class="status-cb" value="Em Rota" checked onchange="applyGlobalFilters()"><span class="badge bg-success">Em Rota</span></label>
+                <label class="status-label"><input type="checkbox" class="status-cb" value="Lento" checked onchange="applyGlobalFilters()"><span class="badge bg-warning">Lentos</span></label>
+                <label class="status-label"><input type="checkbox" class="status-cb" value="Parado" checked onchange="applyGlobalFilters()"><span class="badge bg-danger">Parados</span></label>
+                <label class="status-label"><input type="checkbox" class="status-cb" value="Concluído" checked onchange="applyGlobalFilters()"><span class="badge bg-info">Concluídos</span></label>
             </div>
         </div>
     </div>
 
+    <!-- KPIs -->
     <div class="kpi-grid">
-        <div class="kpi-card" title="Pacotes dos motoristas filtrados">
-            <div class="kpi-title">Total da Rota (Filtrada)</div>
-            <div class="kpi-value" id="kpi-total">0</div>
-        </div>
+        <div class="kpi-card"><div class="kpi-title">Total da Rota (Filtrada)</div><div class="kpi-value" id="kpi-total">0</div></div>
+        <div class="kpi-card"><div class="kpi-title">Entregues</div><div class="kpi-value text-success" id="kpi-delivered">0</div></div>
+        <div class="kpi-card" title="Pacotes com ocorrência na Coluna U"><div class="kpi-title">Insucessos</div><div class="kpi-value text-warning" id="kpi-problem">0</div></div>
+        <div class="kpi-card"><div class="kpi-title">Em Aberto</div><div class="kpi-value text-danger" id="kpi-pending">0</div></div>
+        <div class="kpi-card"><div class="kpi-title">T. Médio Entrega</div><div class="kpi-value" id="kpi-time">0h 0m</div></div>
         <div class="kpi-card">
-            <div class="kpi-title">Entregues</div>
-            <div class="kpi-value text-success" id="kpi-delivered">0</div>
-        </div>
-        <div class="kpi-card" title="Pacotes com ocorrência na Coluna U">
-            <div class="kpi-title">Insucessos</div>
-            <div class="kpi-value text-warning" id="kpi-problem">0</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-title">Em Aberto</div>
-            <div class="kpi-value text-danger" id="kpi-pending">0</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-title">T. Médio Entrega</div>
-            <div class="kpi-value" id="kpi-time">0h 0m</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-title">Status da Frota (Filtrada)</div>
-            <div style="font-size: 0.8rem; margin-top: 5px;" id="kpi-fleet-status">
-                -
-            </div>
+            <div class="kpi-title">Status da Frota</div>
+            <div style="font-size: 0.8rem; margin-top: 5px;" id="kpi-fleet-status">-</div>
         </div>
     </div>
 
+    <!-- Linha 1: Mapa e Gráfico de Horas -->
     <div class="dashboard-grid">
         <div class="card">
             <div class="card-header">
                 <h2>Mapa de Calor (Visualização Diária)</h2>
                 <div style="display: flex; gap: 10px;">
-                    <select id="chartDateFilter" onchange="updateVisuals()">
-                        <option value="ALL">Cronológica Completa</option>
-                    </select>
-                    <button class="btn-action btn-export" onclick="copyTableToImage('heatmap-container', this)">
-                        📋 Copiar Imagem
-                    </button>
+                    <select id="chartDateFilter" onchange="updateVisuals()"><option value="ALL">Cronológica Completa</option></select>
+                    <button class="btn-action btn-export" onclick="copyTableToImage('heatmap-container', this)">📋 Copiar Imagem</button>
                 </div>
             </div>
-            <div class="heatmap-container" id="heatmap-container">
-                <table class="heatmap-table" id="heatmap-table">
-                    </table>
-            </div>
+            <div class="heatmap-container" id="heatmap-container"><table class="heatmap-table" id="heatmap-table"></table></div>
         </div>
 
         <div class="card">
-            <div class="card-header">
-                <h2>Entregas por Hora</h2>
-            </div>
-            <div class="chart-container">
-                <canvas id="hourlyChart"></canvas>
-            </div>
+            <div class="card-header"><h2>Entregas por Hora</h2></div>
+            <div class="chart-container"><canvas id="hourlyChart"></canvas></div>
         </div>
     </div>
 
+    <!-- Linha 2: Monitor + Coluna Direita (Ranking Última Hora e Cidades) -->
     <div class="dashboard-grid" style="grid-template-columns: 1.5fr 1fr;">
+        <!-- Monitor Principal -->
         <div class="card">
             <div class="card-header">
                 <h2>Monitor Operacional em Tempo Real</h2>
                 <div style="display: flex; gap: 10px;">
-                    <button class="btn-action btn-wpp" onclick="openWppModal()">
-                        📱 Gerar WhatsApp
-                    </button>
-                    <button class="btn-action btn-export" onclick="copyTableToImage('monitor-container', this)">
-                        📋 Copiar Imagem
-                    </button>
+                    <button class="btn-action btn-wpp" onclick="openWppModal()">📱 Gerar WhatsApp</button>
+                    <button class="btn-action btn-export" onclick="copyTableToImage('monitor-container', this)">📋 Copiar Imagem</button>
                 </div>
             </div>
-            <div class="table-container" id="monitor-container">
+            <div class="table-container" id="monitor-container" style="max-height: 600px;">
                 <table class="data-table" id="ranking-table">
                     <thead>
                         <tr>
@@ -424,34 +200,63 @@
                             <th onclick="sortRanking('avgTime')">T. Médio ↕</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        </tbody>
+                    <tbody></tbody>
                 </table>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h2>Status por Cidade (Top 15)</h2>
+        <!-- Coluna Direita: Cidades + NOVO Ranking -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            
+            <!-- NOVO: Ranking Última Hora -->
+            <div class="card">
+                <div class="card-header" style="margin-bottom: 5px;">
+                    <h2>🏆 Ranking: Última Hora Fechada</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="filterTopLastHour" onchange="renderLastHourRanking()">
+                            <option value="15">Top 15</option>
+                            <option value="ALL">Todos</option>
+                        </select>
+                        <button class="btn-action btn-export" onclick="copyTableToImage('last-hour-container', this)" style="padding: 4px 8px;">📋 Copiar</button>
+                    </div>
+                </div>
+                <div class="table-container table-small" id="last-hour-container">
+                    <table class="data-table" id="last-hour-table">
+                        <thead>
+                            <tr>
+                                <th>Entregador</th>
+                                <th style="text-align: center;">Peças/Hora</th>
+                                <th>Status Atual</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
-            <div class="chart-container">
-                <canvas id="cityChart"></canvas>
+
+            <!-- Gráfico de Cidades -->
+            <div class="card">
+                <div class="card-header"><h2>Status por Cidade (Top 15)</h2></div>
+                <div class="chart-container chart-small"><canvas id="cityChart"></canvas></div>
             </div>
+
         </div>
     </div>
 
+    <!-- MODAL WHATSAPP -->
     <div class="modal-overlay" id="wppModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>📱 Gerar Cobrança - WhatsApp</h3>
+                <h3>📱 Gerar Mensagem - WhatsApp</h3>
                 <button class="close-modal" onclick="closeWppModal()">&times;</button>
             </div>
             
-            <label style="font-size: 0.85rem; color: var(--text-muted);">Selecione quem você deseja cobrar:</label>
+            <label style="font-size: 0.85rem; color: var(--text-muted);">Selecione o objetivo da mensagem:</label>
             <select id="wppType" onchange="generateWppText()" style="width: 100%; margin-top: 5px;">
-                <option value="AMBOS">Lentos e Parados</option>
-                <option value="PARADO">Apenas Parados</option>
-                <option value="LENTO">Apenas Lentos</option>
+                <option value="AMBOS">Cobrar: Lentos e Parados</option>
+                <option value="PARADO">Cobrar: Apenas Parados</option>
+                <option value="LENTO">Cobrar: Apenas Lentos</option>
+                <option value="CONCLUIDO">Avisar Base: Concluídos (Novo Carregamento)</option>
             </select>
 
             <textarea id="wppTextarea" class="modal-textarea" readonly></textarea>
@@ -483,50 +288,60 @@
             generateWppText();
         }
 
-        function closeWppModal() {
-            document.getElementById('wppModal').style.display = 'none';
-        }
+        function closeWppModal() { document.getElementById('wppModal').style.display = 'none'; }
 
         function generateWppText() {
             const cityFilter = document.getElementById('filterCity').value;
             const wppType = document.getElementById('wppType').value;
             
-            // Tratamento de nome da cidade para o título
             const cityTitle = cityFilter === 'ALL' ? 'TODA OPERAÇÃO' : cityFilter.toUpperCase();
             
-            // Pega direto do currentDriverStats que já está filtrado (se você filtrou a cidade no painel, reflete aqui)
             let parados = currentDriverStats.filter(s => s.statusText === 'Parado');
             let lentos = currentDriverStats.filter(s => s.statusText === 'Lento');
+            let concluidos = currentDriverStats.filter(s => s.statusText === 'Concluído');
 
-            let text = `🚨 *ATENÇÃO EQUIPE - ${cityTitle}* 🚨\n\n`;
+            let text = ``;
             let hasData = false;
 
+            if (wppType === 'CONCLUIDO') {
+                text = `✅ *ATUALIZAÇÃO DE FROTA - ${cityTitle}* ✅\n\n`;
+            } else {
+                text = `🚨 *ATENÇÃO EQUIPE - ${cityTitle}* 🚨\n\n`;
+            }
+
             if ((wppType === 'AMBOS' || wppType === 'PARADO') && parados.length > 0) {
-                text += `🛑 *MOTORISTAS PARADOS*\n_Sem registro de baixas na última hora. Atualizem o app ou reportem se há problemas na rota:_\n\n`;
+                text += `🛑 *MOTORISTAS PARADOS*\n_Sem registro de baixas na última hora. Atualizem o app ou reportem problemas:_\n\n`;
                 parados.forEach(s => {
-                    text += `➖➖➖➖➖➖➖➖\n`;
-                    text += `👤 *${s.name}*\n`;
-                    text += `📦 Pendentes: *${s.pending} pacotes*\n`;
+                    text += `➖➖➖➖➖➖➖➖\n👤 *${s.name}*\n📦 Pendentes: *${s.pending} pacotes*\n`;
                 });
                 text += `➖➖➖➖➖➖➖➖\n\n`;
                 hasData = true;
             }
 
             if ((wppType === 'AMBOS' || wppType === 'LENTO') && lentos.length > 0) {
-                text += `⏳ *ALERTA DE RITMO (LENTOS)*\n_Ritmo abaixo do esperado (menos de 10 pacotes/hora). Vamos acelerar as entregas:_\n\n`;
+                text += `⏳ *ALERTA DE RITMO (LENTOS)*\n_Ritmo abaixo do esperado (menos de 10 pacotes/hora). Vamos acelerar:_\n\n`;
                 lentos.forEach(s => {
-                    text += `➖➖➖➖➖➖➖➖\n`;
-                    text += `👤 *${s.name}*\n`;
-                    text += `📦 Pendentes: *${s.pending} pacotes*\n`;
+                    text += `➖➖➖➖➖➖➖➖\n👤 *${s.name}*\n📦 Pendentes: *${s.pending} pacotes*\n`;
+                });
+                text += `➖➖➖➖➖➖➖➖\n\n`;
+                hasData = true;
+            }
+
+            if (wppType === 'CONCLUIDO' && concluidos.length > 0) {
+                text += `🟢 *DISPONÍVEIS PARA NOVO CARREGAMENTO*\n_Os motoristas abaixo finalizaram a rota anterior e estão 100% livres para nova carga:_\n\n`;
+                concluidos.forEach(s => {
+                    text += `➖➖➖➖➖➖➖➖\n👤 *${s.name}*\n📦 Vol. Total: *${s.total}* | 🔄 Insucessos: *${s.problem}*\n`;
                 });
                 text += `➖➖➖➖➖➖➖➖\n\n`;
                 hasData = true;
             }
 
             if (!hasData) {
-                text = `✅ *TUDO OK!*\nNenhuma pendência de motoristas Lentos ou Parados identificada na triagem atual. Parabéns pelo ritmo! 🚀`;
+                if (wppType === 'CONCLUIDO') text += `Nenhum motorista com status "Concluído" nesta cidade no momento.`;
+                else text += `✅ *TUDO OK!*\nNenhuma pendência de motoristas Lentos ou Parados identificada na triagem atual. Parabéns pelo ritmo! 🚀`;
             } else {
-                text += `👉 *Favor responder aqui no grupo confirmando a normalização do fluxo.*`;
+                if (wppType === 'CONCLUIDO') text += `👉 *Liderança, favor direcionar os veículos acima para a doca de carregamento.*`;
+                else text += `👉 *Favor responder aqui no grupo confirmando a normalização do fluxo.*`;
             }
 
             document.getElementById('wppTextarea').value = text;
@@ -535,13 +350,12 @@
         function copyWppText() {
             const textarea = document.getElementById('wppTextarea');
             textarea.select();
-            textarea.setSelectionRange(0, 99999); // Para mobile
+            textarea.setSelectionRange(0, 99999); 
             navigator.clipboard.writeText(textarea.value).then(() => {
-                alert('Mensagem copiada! Agora é só colar no grupo do WhatsApp.');
+                alert('Mensagem copiada! Cole no WhatsApp.');
             }).catch(err => {
-                // Fallback caso o navigator.clipboard falhe
                 document.execCommand('copy');
-                alert('Mensagem copiada! Agora é só colar no grupo do WhatsApp.');
+                alert('Mensagem copiada! Cole no WhatsApp.');
             });
             closeWppModal();
         }
@@ -549,7 +363,7 @@
         // --- FUNÇÕES DE IMAGEM ---
         async function copyTableToImage(containerId, btnElement) {
             const originalText = btnElement.innerHTML;
-            btnElement.innerHTML = '⏳ Gerando...';
+            btnElement.innerHTML = '⏳...';
             btnElement.disabled = true;
 
             const container = document.getElementById(containerId);
@@ -566,26 +380,19 @@
             container.style.overflow = 'visible';
 
             try {
-                const canvas = await html2canvas(container, {
-                    backgroundColor: '#1a1d2d', 
-                    scale: 2 
-                });
-
+                const canvas = await html2canvas(container, { backgroundColor: '#1a1d2d', scale: 2 });
                 canvas.toBlob(async function(blob) {
                     try {
                         const item = new ClipboardItem({ "image/png": blob });
                         await navigator.clipboard.write([item]);
                         btnElement.innerHTML = '✅ Copiado!';
                     } catch (err) {
-                        console.error('Erro no Clipboard', err);
-                        alert('Seu navegador bloqueou a cópia. Tente outro navegador ou tire print.');
+                        alert('Navegador bloqueou a cópia. Tire print.');
                         btnElement.innerHTML = '❌ Erro';
                     }
                     setTimeout(() => { btnElement.innerHTML = originalText; btnElement.disabled = false; }, 3000);
                 }, 'image/png');
-
             } catch (error) {
-                console.error('Erro ao gerar imagem:', error);
                 btnElement.innerHTML = '❌ Erro';
                 setTimeout(() => { btnElement.innerHTML = originalText; btnElement.disabled = false; }, 3000);
             } finally {
@@ -784,8 +591,8 @@
             });
 
             let allDriversStats = generateDriverStats(baseData);
-
             let allowedDrivers = new Set();
+            
             allDriversStats.forEach(s => {
                 if (activeStatuses.includes(s.statusText)) {
                     allowedDrivers.add(s.name);
@@ -795,10 +602,7 @@
             globalFilteredData = baseData.filter(d => allowedDrivers.has(d.driver));
             currentDriverStats = allDriversStats.filter(s => allowedDrivers.has(s.name));
 
-            // Atualiza o texto do WhatsApp se o modal estiver aberto e os filtros mudarem
-            if (document.getElementById('wppModal').style.display === 'flex') {
-                generateWppText();
-            }
+            if (document.getElementById('wppModal').style.display === 'flex') generateWppText();
 
             updateVisuals();
         }
@@ -806,6 +610,7 @@
         function updateVisuals() {
             updateKPIs();
             renderRankingTable();
+            renderLastHourRanking(); // NOVO RANKING DA ÚLTIMA HORA
             renderCityChart();
 
             const chartDateF = document.getElementById('chartDateFilter').value;
@@ -969,6 +774,41 @@
             });
         }
 
+        // --- NOVO: RENDERIZA O RANKING DA ÚLTIMA HORA ---
+        function renderLastHourRanking() {
+            const tbody = document.querySelector('#last-hour-table tbody');
+            tbody.innerHTML = '';
+            
+            let stats = [...currentDriverStats];
+            
+            // Ordena pela quantidade de entregas na última hora (do maior pro menor)
+            stats.sort((a, b) => b.deliveriesLastHour - a.deliveriesLastHour);
+            
+            // Verifica o filtro (Top 15 ou Todos)
+            const filterVal = document.getElementById('filterTopLastHour').value;
+            if (filterVal === '15') {
+                stats = stats.slice(0, 15);
+            }
+            
+            stats.forEach((s, index) => {
+                const tr = document.createElement('tr');
+                
+                // Medalhas para os 3 primeiros
+                let medal = '';
+                if (index === 0) medal = '🥇 ';
+                else if (index === 1) medal = '🥈 ';
+                else if (index === 2) medal = '🥉 ';
+                else medal = `${index + 1}º `;
+
+                tr.innerHTML = `
+                    <td><strong>${medal}${s.name}</strong></td>
+                    <td style="font-size: 1.1rem; font-weight: bold; color: var(--success); text-align: center;">${s.deliveriesLastHour}</td>
+                    <td><span class="badge ${s.badgeClass}">${s.statusText}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
         function renderHourlyChart(timeData, bins) {
             const ctx = document.getElementById('hourlyChart').getContext('2d');
             const labels = bins.map(b => b.label);
@@ -987,11 +827,7 @@
                         { type: 'bar', label: 'Entregas', data: dataCounts, backgroundColor: bgColors, borderRadius: 4 }
                     ]
                 },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
             });
         }
 
@@ -1006,9 +842,7 @@
                 else cityStats[d.city].pending++;
             });
 
-            const topCities = Object.keys(cityStats)
-                .map(city => ({ city, ...cityStats[city] }))
-                .sort((a, b) => b.total - a.total).slice(0, 15);
+            const topCities = Object.keys(cityStats).map(city => ({ city, ...cityStats[city] })).sort((a, b) => b.total - a.total).slice(0, 15);
 
             if (charts.city) charts.city.destroy();
             charts.city = new Chart(ctx, {
@@ -1021,10 +855,7 @@
                         { label: 'Em Aberto', data: topCities.map(c => c.pending), backgroundColor: 'rgba(239, 68, 68, 0.8)', borderRadius: 4 }
                     ]
                 },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } }
             });
         }
     </script>
