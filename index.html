@@ -84,7 +84,7 @@
 
         /* Tabelas Genéricas */
         .table-container { overflow-x: auto; max-height: 350px; overflow-y: auto; padding: 5px; }
-        .table-small { max-height: 250px; } /* Para o Top 15 */
+        .table-small { max-height: 250px; } 
         
         table.data-table { width: 100%; border-collapse: collapse; }
         table.data-table th, table.data-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; vertical-align: middle; }
@@ -92,10 +92,9 @@
         table.data-table th:hover { color: var(--primary); }
 
         .chart-container { position: relative; height: 250px; width: 100%; }
-        .chart-small { height: 200px; }
 
         /* Badges de Status */
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; white-space: nowrap; }
         .bg-danger { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
         .bg-warning { background-color: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
         .bg-success { background-color: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; }
@@ -166,7 +165,9 @@
                     <button class="btn-action btn-export" onclick="copyTableToImage('heatmap-container', this)">📋 Copiar Imagem</button>
                 </div>
             </div>
-            <div class="heatmap-container" id="heatmap-container"><table class="heatmap-table" id="heatmap-table"></table></div>
+            <div class="heatmap-container" id="heatmap-container">
+                <table class="heatmap-table" id="heatmap-table"></table>
+            </div>
         </div>
 
         <div class="card">
@@ -175,7 +176,7 @@
         </div>
     </div>
 
-    <!-- Linha 2: Monitor + Coluna Direita (Ranking Última Hora e Cidades) -->
+    <!-- Linha 2: Monitor + Coluna Direita (Rankings Menores) -->
     <div class="dashboard-grid" style="grid-template-columns: 1.5fr 1fr;">
         <!-- Monitor Principal -->
         <div class="card">
@@ -205,10 +206,10 @@
             </div>
         </div>
 
-        <!-- Coluna Direita: Cidades + NOVO Ranking -->
+        <!-- Coluna Direita: Ranking Última Hora + Ranking Parados -->
         <div style="display: flex; flex-direction: column; gap: 20px;">
             
-            <!-- NOVO: Ranking Última Hora -->
+            <!-- Ranking Última Hora -->
             <div class="card">
                 <div class="card-header" style="margin-bottom: 5px;">
                     <h2>🏆 Ranking: Última Hora Fechada</h2>
@@ -221,6 +222,9 @@
                     </div>
                 </div>
                 <div class="table-container table-small" id="last-hour-container">
+                    <!-- Título que sairá apenas na imagem gerada -->
+                    <div id="last-hour-subtitle" style="text-align: center; color: var(--warning); font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; padding-top: 5px;"></div>
+                    
                     <table class="data-table" id="last-hour-table">
                         <thead>
                             <tr>
@@ -234,10 +238,27 @@
                 </div>
             </div>
 
-            <!-- Gráfico de Cidades -->
+            <!-- Alerta Parados (> 15 Pendentes) -->
             <div class="card">
-                <div class="card-header"><h2>Status por Cidade (Top 15)</h2></div>
-                <div class="chart-container chart-small"><canvas id="cityChart"></canvas></div>
+                <div class="card-header" style="margin-bottom: 5px;">
+                    <h2 style="color: var(--danger);">🚨 Alerta: Parados (>15)</h2>
+                    <button class="btn-action btn-export" onclick="copyTableToImage('idle-drivers-container', this)" style="padding: 4px 8px;">📋 Copiar</button>
+                </div>
+                <div class="table-container table-small" id="idle-drivers-container">
+                    <!-- Título que sairá na imagem gerada -->
+                    <div style="text-align: center; color: var(--danger); font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; padding-top: 5px;">🚨 Motoristas Parados (>15 Pendentes)</div>
+
+                    <table class="data-table" id="idle-drivers-table">
+                        <thead>
+                            <tr>
+                                <th>Entregador</th>
+                                <th style="text-align: center;">Pendentes</th>
+                                <th style="text-align: center;">Última Baixa</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
 
         </div>
@@ -276,6 +297,7 @@
         let charts = {};
         let currentSort = { column: 'processRate', asc: false };
         let globalMaxDeliveryTime = 0; 
+        let globalLastHourText = ""; 
 
         Chart.defaults.color = '#9ca3af';
         Chart.defaults.borderColor = '#2d3748';
@@ -387,7 +409,7 @@
                         await navigator.clipboard.write([item]);
                         btnElement.innerHTML = '✅ Copiado!';
                     } catch (err) {
-                        alert('Navegador bloqueou a cópia. Tire print.');
+                        alert('Navegador bloqueou a cópia. Tire print da tela.');
                         btnElement.innerHTML = '❌ Erro';
                     }
                     setTimeout(() => { btnElement.innerHTML = originalText; btnElement.disabled = false; }, 3000);
@@ -516,21 +538,31 @@
             const lastHourEnd = new Date(currentHourStart);
             lastHourEnd.setMilliseconds(lastHourEnd.getMilliseconds() - 1);
 
+            // Grava o texto global para a exportação de imagem
+            const hStart = String(lastHourStart.getHours()).padStart(2, '0');
+            globalLastHourText = `${hStart}:00 às ${hStart}:59`;
+
             dataSubset.forEach(d => {
                 const driver = d.driver;
                 if (!stats[driver]) {
                     stats[driver] = { 
                         name: driver, total: 0, delivered: 0, problem: 0, pending: 0, 
                         totalMinutes: 0, validTimes: 0, 
-                        deliveriesCurrentHour: 0, deliveriesLastHour: 0 
+                        deliveriesCurrentHour: 0, deliveriesLastHour: 0,
+                        lastDeliveryTime: 0 
                     };
                 }
                 stats[driver].total++;
                 
                 if (d.isDelivered) {
                     stats[driver].delivered++;
+                    
                     if (d.deliveryTime) {
                         const t = d.deliveryTime.getTime();
+                        if (t > stats[driver].lastDeliveryTime) {
+                            stats[driver].lastDeliveryTime = t;
+                        }
+                        
                         if (t >= currentHourStart.getTime()) {
                             stats[driver].deliveriesCurrentHour++;
                         } else if (t >= lastHourStart.getTime() && t <= lastHourEnd.getTime()) {
@@ -610,8 +642,8 @@
         function updateVisuals() {
             updateKPIs();
             renderRankingTable();
-            renderLastHourRanking(); // NOVO RANKING DA ÚLTIMA HORA
-            renderCityChart();
+            renderLastHourRanking(); 
+            renderIdleDriversRanking(); 
 
             const chartDateF = document.getElementById('chartDateFilter').value;
             let timeData = globalFilteredData.filter(d => d.isDelivered && d.deliveryTime);
@@ -774,17 +806,16 @@
             });
         }
 
-        // --- NOVO: RENDERIZA O RANKING DA ÚLTIMA HORA ---
+        // RANKING DA ÚLTIMA HORA
         function renderLastHourRanking() {
+            document.getElementById('last-hour-subtitle').innerText = '🏆 Top Entregas (' + globalLastHourText + ')';
+
             const tbody = document.querySelector('#last-hour-table tbody');
             tbody.innerHTML = '';
             
             let stats = [...currentDriverStats];
-            
-            // Ordena pela quantidade de entregas na última hora (do maior pro menor)
             stats.sort((a, b) => b.deliveriesLastHour - a.deliveriesLastHour);
             
-            // Verifica o filtro (Top 15 ou Todos)
             const filterVal = document.getElementById('filterTopLastHour').value;
             if (filterVal === '15') {
                 stats = stats.slice(0, 15);
@@ -792,8 +823,6 @@
             
             stats.forEach((s, index) => {
                 const tr = document.createElement('tr');
-                
-                // Medalhas para os 3 primeiros
                 let medal = '';
                 if (index === 0) medal = '🥇 ';
                 else if (index === 1) medal = '🥈 ';
@@ -804,6 +833,44 @@
                     <td><strong>${medal}${s.name}</strong></td>
                     <td style="font-size: 1.1rem; font-weight: bold; color: var(--success); text-align: center;">${s.deliveriesLastHour}</td>
                     <td><span class="badge ${s.badgeClass}">${s.statusText}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // RANKING DE MOTORISTAS PARADOS
+        function renderIdleDriversRanking() {
+            const tbody = document.querySelector('#idle-drivers-table tbody');
+            tbody.innerHTML = '';
+            
+            let idleDrivers = currentDriverStats.filter(s => s.statusText === 'Parado' && s.pending > 15);
+            idleDrivers.sort((a, b) => b.pending - a.pending);
+            
+            if (idleDrivers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--success); padding: 20px;">✅ Nenhum motorista parado com alto volume de pendências!</td></tr>';
+                return;
+            }
+
+            idleDrivers.forEach(s => {
+                const tr = document.createElement('tr');
+                
+                let lastDeliveryStr = "NÃO INICIOU";
+                let lastDeliveryClass = "bg-danger";
+                
+                if (s.lastDeliveryTime && s.lastDeliveryTime > 0) {
+                    const dt = new Date(s.lastDeliveryTime);
+                    const dd = String(dt.getDate()).padStart(2, '0');
+                    const month = String(dt.getMonth() + 1).padStart(2, '0');
+                    const hh = String(dt.getHours()).padStart(2, '0');
+                    const mm = String(dt.getMinutes()).padStart(2, '0');
+                    lastDeliveryStr = `${dd}/${month} ${hh}:${mm}`; // Adicionado Dia e Mês
+                    lastDeliveryClass = "bg-warning";
+                }
+
+                tr.innerHTML = `
+                    <td><strong>${s.name}</strong></td>
+                    <td style="font-size: 1.1rem; font-weight: bold; color: var(--danger); text-align: center;">${s.pending}</td>
+                    <td style="text-align: center;"><span class="badge ${lastDeliveryClass}">${lastDeliveryStr}</span></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -828,34 +895,6 @@
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-            });
-        }
-
-        function renderCityChart() {
-            const ctx = document.getElementById('cityChart').getContext('2d');
-            const cityStats = {};
-            globalFilteredData.forEach(d => {
-                if (!cityStats[d.city]) cityStats[d.city] = { total: 0, delivered: 0, problem: 0, pending: 0 };
-                cityStats[d.city].total++;
-                if (d.isDelivered) cityStats[d.city].delivered++; 
-                else if (d.isProblem) cityStats[d.city].problem++;
-                else cityStats[d.city].pending++;
-            });
-
-            const topCities = Object.keys(cityStats).map(city => ({ city, ...cityStats[city] })).sort((a, b) => b.total - a.total).slice(0, 15);
-
-            if (charts.city) charts.city.destroy();
-            charts.city = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: topCities.map(c => c.city),
-                    datasets: [
-                        { label: 'Entregues', data: topCities.map(c => c.delivered), backgroundColor: 'rgba(16, 185, 129, 0.8)', borderRadius: 4 },
-                        { label: 'Insucessos', data: topCities.map(c => c.problem), backgroundColor: 'rgba(245, 158, 11, 0.8)', borderRadius: 4 },
-                        { label: 'Em Aberto', data: topCities.map(c => c.pending), backgroundColor: 'rgba(239, 68, 68, 0.8)', borderRadius: 4 }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } }
             });
         }
     </script>
