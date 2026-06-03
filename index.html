@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Operacional Logístico</title>
-    <!-- Bibliotecas em CDN -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -142,7 +141,6 @@
         </div>
     </div>
 
-    <!-- KPIs -->
     <div class="kpi-grid">
         <div class="kpi-card"><div class="kpi-title">Total da Rota (Filtrada)</div><div class="kpi-value" id="kpi-total">0</div></div>
         <div class="kpi-card"><div class="kpi-title">Entregues</div><div class="kpi-value text-success" id="kpi-delivered">0</div></div>
@@ -155,7 +153,6 @@
         </div>
     </div>
 
-    <!-- Linha 1: Mapa e Gráfico de Horas -->
     <div class="dashboard-grid">
         <div class="card">
             <div class="card-header">
@@ -176,9 +173,7 @@
         </div>
     </div>
 
-    <!-- Linha 2: Monitor + Coluna Direita (Rankings Menores) -->
     <div class="dashboard-grid" style="grid-template-columns: 1.5fr 1fr;">
-        <!-- Monitor Principal -->
         <div class="card">
             <div class="card-header">
                 <h2>Monitor Operacional em Tempo Real</h2>
@@ -206,10 +201,8 @@
             </div>
         </div>
 
-        <!-- Coluna Direita: Ranking Última Hora + Ranking Parados -->
         <div style="display: flex; flex-direction: column; gap: 20px;">
             
-            <!-- Ranking Última Hora -->
             <div class="card">
                 <div class="card-header" style="margin-bottom: 5px;">
                     <h2>🏆 Ranking: Última Hora Fechada</h2>
@@ -222,7 +215,6 @@
                     </div>
                 </div>
                 <div class="table-container table-small" id="last-hour-container">
-                    <!-- Título que sairá apenas na imagem gerada -->
                     <div id="last-hour-subtitle" style="text-align: center; color: var(--warning); font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; padding-top: 5px;"></div>
                     
                     <table class="data-table" id="last-hour-table">
@@ -238,21 +230,19 @@
                 </div>
             </div>
 
-            <!-- Alerta Parados (> 15 Pendentes) -->
             <div class="card">
                 <div class="card-header" style="margin-bottom: 5px;">
-                    <h2 style="color: var(--danger);">🚨 Alerta: Parados (>15)</h2>
+                    <h2 style="color: var(--danger);">🚨 Alerta: Parados (>=15 Pendências)</h2>
                     <button class="btn-action btn-export" onclick="copyTableToImage('idle-drivers-container', this)" style="padding: 4px 8px;">📋 Copiar</button>
                 </div>
                 <div class="table-container table-small" id="idle-drivers-container">
-                    <!-- Título que sairá na imagem gerada -->
-                    <div style="text-align: center; color: var(--danger); font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; padding-top: 5px;">🚨 Motoristas Parados (>15 Pendentes)</div>
+                    <div style="text-align: center; color: var(--danger); font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; padding-top: 5px;">🚨 Motoristas Parados (Aberto + Insucesso &ge; 15)</div>
 
                     <table class="data-table" id="idle-drivers-table">
                         <thead>
                             <tr>
                                 <th>Entregador</th>
-                                <th style="text-align: center;">Pendentes</th>
+                                <th style="text-align: center;" title="Soma de Pacotes Abertos + Insucessos">Pendências</th>
                                 <th style="text-align: center;">Última Baixa</th>
                             </tr>
                         </thead>
@@ -264,7 +254,6 @@
         </div>
     </div>
 
-    <!-- MODAL WHATSAPP -->
     <div class="modal-overlay" id="wppModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -277,7 +266,7 @@
                 <option value="AMBOS">Cobrar: Lentos e Parados</option>
                 <option value="PARADO">Cobrar: Apenas Parados</option>
                 <option value="LENTO">Cobrar: Apenas Lentos</option>
-                <option value="CONCLUIDO">Avisar Base: Concluídos (Novo Carregamento)</option>
+                <option value="CONCLUIDO">Avisar Base: Concluídos (Aptos ao Carregamento)</option>
             </select>
 
             <textarea id="wppTextarea" class="modal-textarea" readonly></textarea>
@@ -334,7 +323,7 @@
             if ((wppType === 'AMBOS' || wppType === 'PARADO') && parados.length > 0) {
                 text += `🛑 *MOTORISTAS PARADOS*\n_Sem registro de baixas na última hora. Atualizem o app ou reportem problemas:_\n\n`;
                 parados.forEach(s => {
-                    text += `➖➖➖➖➖➖➖➖\n👤 *${s.name}*\n📦 Pendentes: *${s.pending} pacotes*\n`;
+                    text += `➖➖➖➖➖➖➖➖\n👤 *${s.name}*\n📦 Pendências: *${s.pending + s.problem}* (Abertos: ${s.pending} | Insucessos: ${s.problem})\n`;
                 });
                 text += `➖➖➖➖➖➖➖➖\n\n`;
                 hasData = true;
@@ -343,23 +332,23 @@
             if ((wppType === 'AMBOS' || wppType === 'LENTO') && lentos.length > 0) {
                 text += `⏳ *ALERTA DE RITMO (LENTOS)*\n_Ritmo abaixo do esperado (menos de 10 pacotes/hora). Vamos acelerar:_\n\n`;
                 lentos.forEach(s => {
-                    text += `➖➖➖➖➖➖➖➖\n👤 *${s.name}*\n📦 Pendentes: *${s.pending} pacotes*\n`;
+                    text += `➖➖➖➖➖➖➖➖\n👤 *${s.name}*\n📦 Pendências: *${s.pending + s.problem}* (Abertos: ${s.pending} | Insucessos: ${s.problem})\n`;
                 });
                 text += `➖➖➖➖➖➖➖➖\n\n`;
                 hasData = true;
             }
 
             if (wppType === 'CONCLUIDO' && concluidos.length > 0) {
-                text += `🟢 *DISPONÍVEIS PARA NOVO CARREGAMENTO*\n_Os motoristas abaixo finalizaram a rota anterior e estão 100% livres para nova carga:_\n\n`;
+                text += `🟢 *APTOS PARA NOVO CARREGAMENTO*\n_Veículos com menos de 15 pendências globais, prontos para nova carga:_\n\n`;
                 concluidos.forEach(s => {
-                    text += `➖➖➖➖➖➖➖➖\n👤 *${s.name}*\n📦 Vol. Total: *${s.total}* | 🔄 Insucessos: *${s.problem}*\n`;
+                    text += `➖➖➖➖➖➖➖➖\n👤 *${s.name}*\n📦 Vol. Total: *${s.total}* | ⚠️ Abertos: *${s.pending}* | 🔄 Insucessos: *${s.problem}*\n`;
                 });
                 text += `➖➖➖➖➖➖➖➖\n\n`;
                 hasData = true;
             }
 
             if (!hasData) {
-                if (wppType === 'CONCLUIDO') text += `Nenhum motorista com status "Concluído" nesta cidade no momento.`;
+                if (wppType === 'CONCLUIDO') text += `Nenhum motorista apto ao carregamento ("Concluído") nesta cidade no momento.`;
                 else text += `✅ *TUDO OK!*\nNenhuma pendência de motoristas Lentos ou Parados identificada na triagem atual. Parabéns pelo ritmo! 🚀`;
             } else {
                 if (wppType === 'CONCLUIDO') text += `👉 *Liderança, favor direcionar os veículos acima para a doca de carregamento.*`;
@@ -382,7 +371,7 @@
             closeWppModal();
         }
 
-        // --- FUNÇÕES DE IMAGEM ---
+        // --- FUNÇÕES DE IMAGEM (ATUALIZADA PARA NÃO CORTAR LARGURA) ---
         async function copyTableToImage(containerId, btnElement) {
             const originalText = btnElement.innerHTML;
             btnElement.innerHTML = '⏳...';
@@ -391,6 +380,8 @@
             const container = document.getElementById(containerId);
             const origMaxHeight = container.style.maxHeight;
             const origOverflow = container.style.overflow;
+            const origWidth = container.style.width;
+            const origMaxWidth = container.style.maxWidth;
             
             const thElements = container.querySelectorAll('th');
             const tdElements = container.querySelectorAll('td:first-child'); 
@@ -400,9 +391,20 @@
 
             container.style.maxHeight = 'none';
             container.style.overflow = 'visible';
+            
+            if(containerId === 'heatmap-container') {
+                container.style.width = container.scrollWidth + 'px';
+                container.style.maxWidth = 'none';
+            }
 
             try {
-                const canvas = await html2canvas(container, { backgroundColor: '#1a1d2d', scale: 2 });
+                const canvas = await html2canvas(container, { 
+                    backgroundColor: '#1a1d2d', 
+                    scale: 2,
+                    width: container.scrollWidth,
+                    height: container.scrollHeight
+                });
+
                 canvas.toBlob(async function(blob) {
                     try {
                         const item = new ClipboardItem({ "image/png": blob });
@@ -420,6 +422,8 @@
             } finally {
                 container.style.maxHeight = origMaxHeight;
                 container.style.overflow = origOverflow;
+                container.style.width = origWidth;
+                container.style.maxWidth = origMaxWidth;
                 thElements.forEach(th => { th.style.position = 'sticky'; });
                 tdElements.forEach(td => { td.style.position = 'sticky'; });
             }
@@ -538,7 +542,6 @@
             const lastHourEnd = new Date(currentHourStart);
             lastHourEnd.setMilliseconds(lastHourEnd.getMilliseconds() - 1);
 
-            // Grava o texto global para a exportação de imagem
             const hStart = String(lastHourStart.getHours()).padStart(2, '0');
             globalLastHourText = `${hStart}:00 às ${hStart}:59`;
 
@@ -590,7 +593,10 @@
                 let statusText = 'Em Rota';
                 let badgeClass = 'bg-success';
 
-                if (s.pending === 0) {
+                // NOVA REGRA DE CONCLUÍDO (Menos de 15 pendências no geral e entregou algo)
+                let unfinished = s.pending + s.problem;
+                
+                if (unfinished < 15 && s.delivered > 0) {
                     statusText = 'Concluído';
                     badgeClass = 'bg-info';
                 } else if (s.deliveriesCurrentHour === 0) {
@@ -838,13 +844,16 @@
             });
         }
 
-        // RANKING DE MOTORISTAS PARADOS
+        // RANKING DE MOTORISTAS PARADOS (> 15 PENDÊNCIAS)
         function renderIdleDriversRanking() {
             const tbody = document.querySelector('#idle-drivers-table tbody');
             tbody.innerHTML = '';
             
-            let idleDrivers = currentDriverStats.filter(s => s.statusText === 'Parado' && s.pending > 15);
-            idleDrivers.sort((a, b) => b.pending - a.pending);
+            // FILTRA: Status "Parado" E total de pendências >= 15
+            let idleDrivers = currentDriverStats.filter(s => s.statusText === 'Parado' && (s.pending + s.problem) >= 15);
+            
+            // Ordena pelos que têm mais pendências gerais
+            idleDrivers.sort((a, b) => (b.pending + b.problem) - (a.pending + a.problem));
             
             if (idleDrivers.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--success); padding: 20px;">✅ Nenhum motorista parado com alto volume de pendências!</td></tr>';
@@ -863,13 +872,15 @@
                     const month = String(dt.getMonth() + 1).padStart(2, '0');
                     const hh = String(dt.getHours()).padStart(2, '0');
                     const mm = String(dt.getMinutes()).padStart(2, '0');
-                    lastDeliveryStr = `${dd}/${month} ${hh}:${mm}`; // Adicionado Dia e Mês
+                    lastDeliveryStr = `${dd}/${month} ${hh}:${mm}`; 
                     lastDeliveryClass = "bg-warning";
                 }
 
+                let totalPendencias = s.pending + s.problem;
+
                 tr.innerHTML = `
                     <td><strong>${s.name}</strong></td>
-                    <td style="font-size: 1.1rem; font-weight: bold; color: var(--danger); text-align: center;">${s.pending}</td>
+                    <td style="font-size: 1.1rem; font-weight: bold; color: var(--danger); text-align: center;" title="Abertos: ${s.pending} | Insucessos: ${s.problem}">${totalPendencias}</td>
                     <td style="text-align: center;"><span class="badge ${lastDeliveryClass}">${lastDeliveryStr}</span></td>
                 `;
                 tbody.appendChild(tr);
