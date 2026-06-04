@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Operacional Logístico</title>
+    <title>Painel Operacional Logístico - SLA</title>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -31,7 +31,15 @@
         .header-top { display: flex; justify-content: space-between; align-items: center; }
         .header h1 { font-size: 1.5rem; color: var(--text-main); }
 
-        .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background-color: rgba(255, 255, 255, 0.02); padding: 12px; border-radius: 8px; border: 1px dashed var(--border); }
+        .controls { 
+            display: flex; flex-direction: column; gap: 12px; 
+            background-color: rgba(255, 255, 255, 0.02); padding: 15px; 
+            border-radius: 8px; border: 1px dashed var(--border); 
+        }
+        
+        .filter-section { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; width: 100%; }
+        .filter-divider { width: 100%; height: 1px; background: dashed 1px var(--border); margin: 5px 0; }
+
         input[type="file"] { display: none; }
 
         .btn-upload { background-color: var(--primary); color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.3s; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
@@ -49,7 +57,8 @@
         select { background-color: var(--card-bg); color: var(--text-main); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; outline: none; font-size: 0.9rem; }
 
         /* Checkboxes */
-        .status-filters { display: flex; gap: 12px; align-items: center; padding-left: 10px; border-left: 1px solid var(--border); }
+        .status-filters { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .status-filters.bordered { padding-left: 10px; border-left: 1px solid var(--border); }
         .status-label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.85rem; user-select: none; }
         .status-label input[type="checkbox"] { cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary); }
 
@@ -94,6 +103,7 @@
 
         /* Badges de Status */
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; white-space: nowrap; }
+        .badge-date { background-color: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); }
         .bg-danger { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
         .bg-warning { background-color: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
         .bg-success { background-color: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; }
@@ -114,7 +124,7 @@
 
     <div class="header">
         <div class="header-top">
-            <h1>Painel Operacional Logístico</h1>
+            <h1>Painel Operacional Logístico <span style="font-size:1rem; color:var(--danger);">(Gestão de SLA)</span></h1>
             <label class="btn-upload">
                 📥 Importar Planilha
                 <input type="file" id="fileInput" accept=".xlsx, .xls">
@@ -122,27 +132,37 @@
         </div>
         
         <div class="controls">
-            <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: bold;">FILTROS:</span>
-            <select id="filterLoadDate" onchange="applyGlobalFilters()"><option value="ALL">Lote: Todos</option></select>
-            <select id="filterCity" onchange="applyGlobalFilters()"><option value="ALL">Cidades: Todas</option></select>
-            <select id="filterStatus" onchange="applyGlobalFilters()">
-                <option value="ALL">Pacote: Todos</option>
-                <option value="DELIVERED">Apenas Entregues</option>
-                <option value="PROBLEM">Apenas Insucessos</option>
-                <option value="PENDING">Apenas Em Aberto</option>
-            </select>
+            <div class="filter-section">
+                <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: bold; margin-right: 5px;">FILTROS GERAIS:</span>
+                <select id="filterCity" onchange="applyGlobalFilters()"><option value="ALL">Cidades: Todas</option></select>
+                <select id="filterStatus" onchange="applyGlobalFilters()">
+                    <option value="ALL">Pacote: Todos</option>
+                    <option value="DELIVERED">Apenas Entregues</option>
+                    <option value="PROBLEM">Apenas Insucessos</option>
+                    <option value="PENDING">Apenas Em Aberto</option>
+                </select>
 
-            <div class="status-filters">
-                <label class="status-label"><input type="checkbox" class="status-cb" value="Em Rota" checked onchange="applyGlobalFilters()"><span class="badge bg-success">Em Rota</span></label>
-                <label class="status-label"><input type="checkbox" class="status-cb" value="Lento" checked onchange="applyGlobalFilters()"><span class="badge bg-warning">Lentos</span></label>
-                <label class="status-label"><input type="checkbox" class="status-cb" value="Parado" checked onchange="applyGlobalFilters()"><span class="badge bg-danger">Parados</span></label>
-                <label class="status-label"><input type="checkbox" class="status-cb" value="Concluído" checked onchange="applyGlobalFilters()"><span class="badge bg-info">Concluídos</span></label>
+                <div class="status-filters bordered">
+                    <label class="status-label"><input type="checkbox" class="status-cb" value="Em Rota" checked onchange="applyGlobalFilters()"><span class="badge bg-success">Em Rota</span></label>
+                    <label class="status-label"><input type="checkbox" class="status-cb" value="Lento" checked onchange="applyGlobalFilters()"><span class="badge bg-warning">Lentos</span></label>
+                    <label class="status-label"><input type="checkbox" class="status-cb" value="Parado" checked onchange="applyGlobalFilters()"><span class="badge bg-danger">Parados</span></label>
+                    <label class="status-label"><input type="checkbox" class="status-cb" value="Concluído" checked onchange="applyGlobalFilters()"><span class="badge bg-info">Concluídos</span></label>
+                </div>
+            </div>
+
+            <div class="filter-divider"></div>
+
+            <div class="filter-section">
+                <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: bold; margin-right: 5px;">LOTES DE CARREGAMENTO (Tempo de entrega):</span>
+                <div id="filterLoadDateContainer" class="status-filters">
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Importe a planilha para carregar os lotes.</span>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="kpi-grid">
-        <div class="kpi-card"><div class="kpi-title">Total da Rota (Filtrada)</div><div class="kpi-value" id="kpi-total">0</div></div>
+        <div class="kpi-card" title="Pacotes dos lotes e motoristas filtrados"><div class="kpi-title">Total da Rota (SLA)</div><div class="kpi-value" id="kpi-total">0</div></div>
         <div class="kpi-card"><div class="kpi-title">Entregues</div><div class="kpi-value text-success" id="kpi-delivered">0</div></div>
         <div class="kpi-card" title="Pacotes com ocorrência na Coluna U"><div class="kpi-title">Insucessos</div><div class="kpi-value text-warning" id="kpi-problem">0</div></div>
         <div class="kpi-card"><div class="kpi-title">Em Aberto</div><div class="kpi-value text-danger" id="kpi-pending">0</div></div>
@@ -263,9 +283,9 @@
             
             <label style="font-size: 0.85rem; color: var(--text-muted);">Selecione o objetivo da mensagem:</label>
             <select id="wppType" onchange="generateWppText()" style="width: 100%; margin-top: 5px;">
-                <option value="AMBOS">Cobrar: Lentos e Parados</option>
-                <option value="PARADO">Cobrar: Apenas Parados</option>
-                <option value="LENTO">Cobrar: Apenas Lentos</option>
+                <option value="AMBOS">Cobrar SLA: Lentos e Parados</option>
+                <option value="PARADO">Cobrar SLA: Apenas Parados</option>
+                <option value="LENTO">Cobrar SLA: Apenas Lentos</option>
                 <option value="CONCLUIDO">Avisar Base: Concluídos (Aptos ao Carregamento)</option>
             </select>
 
@@ -305,6 +325,10 @@
             const cityFilter = document.getElementById('filterCity').value;
             const wppType = document.getElementById('wppType').value;
             
+            // Pega as datas de carregamento que estão selecionadas para compor o título
+            const activeDatesElements = Array.from(document.querySelectorAll('.load-date-cb:checked')).map(cb => cb.value);
+            const datasCarregamento = activeDatesElements.length > 0 ? activeDatesElements.join(', ') : 'Todos';
+
             const cityTitle = cityFilter === 'ALL' ? 'TODA OPERAÇÃO' : cityFilter.toUpperCase();
             
             let parados = currentDriverStats.filter(s => s.statusText === 'Parado');
@@ -315,9 +339,9 @@
             let hasData = false;
 
             if (wppType === 'CONCLUIDO') {
-                text = `✅ *ATUALIZAÇÃO DE FROTA - ${cityTitle}* ✅\n\n`;
+                text = `✅ *ATUALIZAÇÃO DE FROTA - ${cityTitle}* ✅\n📅 _Lotes: ${datasCarregamento}_\n\n`;
             } else {
-                text = `🚨 *ATENÇÃO EQUIPE - ${cityTitle}* 🚨\n\n`;
+                text = `🚨 *ATENÇÃO EQUIPE (SLA) - ${cityTitle}* 🚨\n📅 _Cargas cobradas: ${datasCarregamento}_\n\n`;
             }
 
             if ((wppType === 'AMBOS' || wppType === 'PARADO') && parados.length > 0) {
@@ -348,8 +372,8 @@
             }
 
             if (!hasData) {
-                if (wppType === 'CONCLUIDO') text += `Nenhum motorista apto ao carregamento ("Concluído") nesta cidade no momento.`;
-                else text += `✅ *TUDO OK!*\nNenhuma pendência de motoristas Lentos ou Parados identificada na triagem atual. Parabéns pelo ritmo! 🚀`;
+                if (wppType === 'CONCLUIDO') text += `Nenhum motorista apto ao carregamento ("Concluído") nestes lotes no momento.`;
+                else text += `✅ *TUDO OK!*\nNenhuma pendência de motoristas Lentos ou Parados identificada na triagem atual destes lotes. Parabéns pelo ritmo! 🚀`;
             } else {
                 if (wppType === 'CONCLUIDO') text += `👉 *Liderança, favor direcionar os veículos acima para a doca de carregamento.*`;
                 else text += `👉 *Favor responder aqui no grupo confirmando a normalização do fluxo.*`;
@@ -371,7 +395,7 @@
             closeWppModal();
         }
 
-        // --- FUNÇÕES DE IMAGEM (ATUALIZADA PARA NÃO CORTAR LARGURA) ---
+        // --- FUNÇÕES DE IMAGEM ---
         async function copyTableToImage(containerId, btnElement) {
             const originalText = btnElement.innerHTML;
             btnElement.innerHTML = '⏳...';
@@ -443,6 +467,7 @@
                 
                 globalMaxDeliveryTime = 0;
 
+                // Coluna J = Tempo de Entrega (Carregamento)
                 rawData = jsonData.slice(1).map(row => {
                     const loadTimeObj = parseExcelDate(row['J']);
                     const deliveryTimeObj = parseExcelDate(row['M']);
@@ -512,10 +537,23 @@
         }
 
         function populateFilters() {
+            // POPULA DATAS DE CARREGAMENTO COMO CHECKBOXES
             const loadDates = [...new Set(rawData.map(d => d.loadDateStr))].filter(x => x !== 'N/D').sort((a,b) => b.localeCompare(a));
-            const filterLoad = document.getElementById('filterLoadDate');
-            filterLoad.innerHTML = '<option value="ALL">Lote: Todos</option>';
-            loadDates.forEach(dt => filterLoad.innerHTML += `<option value="${dt}">${dt}</option>`);
+            const loadContainer = document.getElementById('filterLoadDateContainer');
+            loadContainer.innerHTML = '';
+            
+            if (loadDates.length === 0) {
+                loadContainer.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted);">Nenhuma data válida encontrada.</span>';
+            } else {
+                loadDates.forEach(dt => {
+                    loadContainer.innerHTML += `
+                        <label class="status-label">
+                            <input type="checkbox" class="load-date-cb" value="${dt}" checked onchange="applyGlobalFilters()">
+                            <span class="badge badge-date">${dt}</span>
+                        </label>
+                    `;
+                });
+            }
 
             const cities = [...new Set(rawData.map(d => d.city))].sort();
             const filterCity = document.getElementById('filterCity');
@@ -593,7 +631,7 @@
                 let statusText = 'Em Rota';
                 let badgeClass = 'bg-success';
 
-                // NOVA REGRA DE CONCLUÍDO (Menos de 15 pendências no geral e entregou algo)
+                // NOVA REGRA DE CONCLUÍDO
                 let unfinished = s.pending + s.problem;
                 
                 if (unfinished < 15 && s.delivered > 0) {
@@ -614,13 +652,18 @@
         }
 
         function applyGlobalFilters() {
-            const loadF = document.getElementById('filterLoadDate').value;
+            // Arrays dos Checkboxes Múltiplos
+            const activeLoadDates = Array.from(document.querySelectorAll('.load-date-cb:checked')).map(cb => cb.value);
+            const activeStatuses = Array.from(document.querySelectorAll('.status-cb:checked')).map(cb => cb.value);
+            
+            // Outros filtros
             const cityF = document.getElementById('filterCity').value;
             const statusF = document.getElementById('filterStatus').value;
-            const activeStatuses = Array.from(document.querySelectorAll('.status-cb:checked')).map(cb => cb.value);
 
             let baseData = rawData.filter(d => {
-                if (loadF !== 'ALL' && d.loadDateStr !== loadF) return false;
+                // Filtro Múltiplo de Datas de Carregamento
+                if (!activeLoadDates.includes(d.loadDateStr)) return false; 
+                
                 if (cityF !== 'ALL' && d.city !== cityF) return false;
                 if (statusF === 'DELIVERED' && !d.isDelivered) return false;
                 if (statusF === 'PROBLEM' && !d.isProblem) return false;
@@ -844,15 +887,12 @@
             });
         }
 
-        // RANKING DE MOTORISTAS PARADOS (> 15 PENDÊNCIAS)
+        // RANKING DE MOTORISTAS PARADOS
         function renderIdleDriversRanking() {
             const tbody = document.querySelector('#idle-drivers-table tbody');
             tbody.innerHTML = '';
             
-            // FILTRA: Status "Parado" E total de pendências >= 15
             let idleDrivers = currentDriverStats.filter(s => s.statusText === 'Parado' && (s.pending + s.problem) >= 15);
-            
-            // Ordena pelos que têm mais pendências gerais
             idleDrivers.sort((a, b) => (b.pending + b.problem) - (a.pending + a.problem));
             
             if (idleDrivers.length === 0) {
