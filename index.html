@@ -459,19 +459,68 @@
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
+            reader.onload = function(e_read) {
+                const data = new Uint8Array(e_read.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: "A", defval: null });
                 
+                // Lê a planilha como array de arrays para identificar cabeçalhos
+                const rawSheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+
+                if (rawSheetData.length < 2) {
+                    alert("Erro: A planilha parece estar vazia ou sem dados.");
+                    e.target.value = ''; // Reseta o input
+                    return;
+                }
+
+                // Identifica os índices das colunas baseados nos títulos
+                const headers = rawSheetData[0];
+                
+                const expectedHeaders = {
+                    id: "Número de pedido JMS",
+                    driver: "Responsável pela entrega",
+                    loadTime: "Tempo de entrega",
+                    deliveryTime: "Horário da entrega",
+                    city: "Cidade Destino",
+                    reason: "Motivos dos pacotes problemáticos"
+                };
+
+                const headerMap = {
+                    id: headers.indexOf(expectedHeaders.id),
+                    driver: headers.indexOf(expectedHeaders.driver),
+                    loadTime: headers.indexOf(expectedHeaders.loadTime),
+                    deliveryTime: headers.indexOf(expectedHeaders.deliveryTime),
+                    city: headers.indexOf(expectedHeaders.city),
+                    reason: headers.indexOf(expectedHeaders.reason)
+                };
+
+                // Validação rigorosa e amigável das colunas obrigatórias
+                const missingColumns = [];
+                for (const key in headerMap) {
+                    if (headerMap[key] === -1) {
+                        missingColumns.push(expectedHeaders[key]);
+                    }
+                }
+
+                if (missingColumns.length > 0) {
+                    let errorMsg = "❌ Erro ao importar a planilha\n\nAs seguintes colunas obrigatórias não foram encontradas:\n";
+                    missingColumns.forEach(col => {
+                        errorMsg += `• ${col}\n`;
+                    });
+                    errorMsg += "\nVerifique se a planilha possui todos os cabeçalhos necessários e tente novamente.";
+                    
+                    alert(errorMsg);
+                    e.target.value = ''; // Reseta o input de arquivo para permitir nova tentativa
+                    return; // Interrompe completamente o carregamento
+                }
+
                 globalMaxDeliveryTime = 0;
 
-                // Coluna J = Tempo de Entrega (Carregamento)
-                rawData = jsonData.slice(1).map(row => {
-                    const loadTimeObj = parseExcelDate(row['J']);
-                    const deliveryTimeObj = parseExcelDate(row['M']);
-                    const reasonCol = row['U'] ? String(row['U']).trim() : null;
+                // Processa os dados a partir da linha 1 (pulando o cabeçalho)
+                rawData = rawSheetData.slice(1).map(row => {
+                    const loadTimeObj = parseExcelDate(row[headerMap.loadTime]);
+                    const deliveryTimeObj = parseExcelDate(row[headerMap.deliveryTime]);
+                    const reasonCol = row[headerMap.reason] ? String(row[headerMap.reason]).trim() : null;
                     
                     if (deliveryTimeObj && deliveryTimeObj.getTime() > globalMaxDeliveryTime) {
                         globalMaxDeliveryTime = deliveryTimeObj.getTime();
@@ -482,13 +531,13 @@
                     const isPend = !isDeliv && !isProb;
 
                     return {
-                        id: row['A'] || 'N/A',
-                        driver: row['E'] || 'Desconhecido',
+                        id: row[headerMap.id] || 'N/A',
+                        driver: row[headerMap.driver] || 'Desconhecido',
                         loadTime: loadTimeObj,
                         loadDateStr: formatDateBR(loadTimeObj),
                         deliveryTime: deliveryTimeObj,
                         deliveryDateStr: formatDateBR(deliveryTimeObj),
-                        city: row['T'] || 'Desconhecida',
+                        city: row[headerMap.city] || 'Desconhecida',
                         reason: reasonCol,
                         isDelivered: isDeliv,
                         isProblem: isProb,
